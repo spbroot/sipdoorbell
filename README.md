@@ -173,6 +173,7 @@ Intercom control is carried out via DTMF commands
   ```
   
   In this configuration, the open lock is performed by sending the DTMF code "0". Replace "sndcode 0" with the required value
+  
   In this configuration, the SIP call hangup is performed by sending the DTMF code "#". Replace "sndcode %23" with the required value
   
 * Create a script /opt/sipdoorbell/monitor.sh to start baresip at system startup and further check the incoming call to baresip and notify ffmpeg about it
