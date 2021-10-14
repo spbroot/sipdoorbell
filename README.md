@@ -66,7 +66,7 @@ Intercom control is carried out via DTMF commands
 
   ausrc_srate             48000
   auplay_srate            48000
-  ausrc_channels          1
+  ausrc_channels          2
   auplay_channels         2
 
   module                  httpd.so
@@ -107,7 +107,8 @@ Intercom control is carried out via DTMF commands
   _EXPERIMENTAL - WIP_
 
     ```
-    Two-way Audio Target (EXPERIMENTAL - WIP): "-filter:a volume=12dB -f alsa -ac 1 -ar 48000 sipdoorbell_return"
+    Two-way Audio Target (EXPERIMENTAL - WIP): "-filter:a volume=12dB -f alsa -ac 2 -ar 48000 sipdoorbell_return"
+    Two-way FFmpeg Debug Logging: checked
     Audio Stream: "1:a"
     Enable doorbell: checked
     ```
@@ -127,8 +128,10 @@ Intercom control is carried out via DTMF commands
   ```
   "source": "-re -stream_loop -1 -i /opt/sipdoorbell/homekit.avi -f alsa -ac 2 -ar 48000 -i sipdoorbell_main",
   "stillImageSource": "-i /opt/sipdoorbell/homekit.jpg",
-  "returnAudioTarget": "-filter:a volume=12dB -f alsa -ac 1 -ar 48000 sipdoorbell_return",
+  "returnAudioTarget": "-filter:a volume=12dB -f alsa -ac 2 -ar 48000 sipdoorbell_return",
   "mapaudio": "1:a",
+  "audio": true,
+  "debugReturn": true
   ```
 
   _If there is an RTSP stream from the intercom, replace "-re -stream_loop -1 -i /opt/sipdoorbell/homekit.avi" and  
@@ -138,14 +141,9 @@ Intercom control is carried out via DTMF commands
 
 * Homebridge Http Switch Plugin Configuration
 
+  Command for open the door via send HTTP request to Baresip
+  
   ```
-          {
-              "accessory": "HTTP-SWITCH",
-              "name": "Answer",
-              "switchType": "stateless",
-              "timeout": 3000,
-              "onUrl": "http://localhost:8000/?/accept"
-          },
           {
               "accessory": "HTTP-SWITCH",
               "name": "Open",
@@ -156,6 +154,18 @@ Intercom control is carried out via DTMF commands
                   "http://localhost:8000/?/sndcode 0",
                   "http://localhost:8000/?/sndcode %04"
               ]
+          }
+  ```
+  
+  Command for manual answer and hangup SIP call (for Homekit Automation etc.)
+  
+  ```
+            {
+              "accessory": "HTTP-SWITCH",
+              "name": "Answer",
+              "switchType": "stateless",
+              "timeout": 3000,
+              "onUrl": "http://localhost:8000/?/accept"
           },
           {
               "accessory": "HTTP-SWITCH",
@@ -169,7 +179,7 @@ Intercom control is carried out via DTMF commands
                   "delay(1000)",
                   "http://localhost:8000/?/hangup"
               ]
-          }
+          }          
   ```
   
   In this configuration, the open lock is performed by sending the DTMF code "0". Replace "sndcode 0" with the required value
@@ -196,13 +206,26 @@ Intercom control is carried out via DTMF commands
 
   ```
   #!/bin/bash
+
   baresip -d -f /home/pi/.baresip
+  count=0
   while true;
   do
-    if wget -qO- http://localhost:8000/?/callstat | grep -q "INCOMING"
-    then
-      wget -q http://localhost:8080/doorbell?Doorbell > /dev/null 2>&1
-      sleep 20
+    if wget -qO- http://localhost:8000/?/callstat | grep -q "INCOMING"; then
+      tail -100 /var/lib/homebridge/homebridge.log | awk -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` '$0~date && $0~time && /[Doorbell]/ && /[Two-way]/ && /time=/ && !/time=00:00:00.00/ {system("wget -q http://localhost:8000/?/accept")}'
+      if [[ "$count" -eq "0" ]]; then
+        wget -q http://localhost:8080/doorbell?Doorbell > /dev/null 2>&1
+        ((count++))
+      elif (( "$count" > "20" )); then
+        count=0
+      else
+        ((count++))
+      fi
+    else
+      count=0
+    fi
+    if wget -qO- http://localhost:8000/?/callstat | grep -q "ESTABLISHED"; then
+      tail -100 /var/lib/homebridge/homebridge.log | awk -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` -v time15=`date -d'now-15 seconds' +%H:%M:%S` '($0~date && ($0~time || $0~time15) && /[Doorbell]/ && /[Two-way]/ && /time=/ && !/time=00:00:00.00/) {found=1} END {if(!found) system("wget -q http://localhost:8000/?/hangup")}'
     fi
     sleep 1
   done
@@ -212,42 +235,6 @@ Intercom control is carried out via DTMF commands
 
   ```
   sudo chmod +x /opt/sipdoorbell/monitor.sh
-  ```
-
-* Create a script /opt/sipdoorbell/control.sh to add the ability to answer and end a call by pressing the TALK button in the Homekit app
-
-  ```
-  sudo mkdir /opt/sipdoorbell
-  sudo nano /opt/sipdoorbell/control.sh
-  ```
-
-  with the following content:
-
-  ```  
-  #!/bin/bash
-  while true;
-  do
-    if wget -qO- http://localhost:8000/?/callstat | grep -q "INCOMING"
-      then
-        tail -100 /var/lib/homebridge/homebridge.log | awk -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` '$0~date && $0~time && /[Doorbell]/ && /[Two-way]/ && /time=/ {system("wget -q http://localhost:8000/?/accept")}'
-    fi
-    if wget -qO- http://localhost:8000/?/callstat | grep -q "ESTABLISHED"
-      then
-        tail -100 /var/lib/homebridge/homebridge.log | awk -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` -v time15=`date -d'now-15 seconds' +%H:%M:%S` '($0~date && ($0~time || $0~time15) && /[Doorbell]/ && /[Two-way]/ && /time=/) {found=1} END {if(!found) system("wget -q http://localhost:8000/?/hangup")}'
-    fi
-    sleep 1
-  done
-  ```
-  
-  _This script should answer the call when you press the TALK button, and end the call 15 seconds after disconnecting TALK or closing the application_
-  
-  _The device name "Doorbell" in the Camera FFmpeg Plugin must match the name on the line "&& /[Doorbell]/ &&"_
-
-
-* Making the script /opt/sipdoorbell/control.sh executable
-
-  ```
-  sudo chmod +x /opt/sipdoorbell/control.sh
   ```
 
 * Create a file /etc/systemd/system/sipdoorbell.service to create a Sipdoorbell service
@@ -265,7 +252,6 @@ Intercom control is carried out via DTMF commands
 
   [Service]
   Type=simple
-  ExecStartPre=/opt/sipdoorbell/control.sh
   ExecStart=/opt/sipdoorbell/monitor.sh
   
   [Install]
