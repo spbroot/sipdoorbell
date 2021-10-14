@@ -232,6 +232,7 @@ Intercom control is carried out via DTMF commands
   ```
 
   _The device name "Doorbell" in the Camera FFmpeg Plugin must match the name on the line "http://localhost:8080/doorbell?Doorbell" (after the "?")_
+  
   _The device name "Doorbell" in the Camera FFmpeg Plugin must match the name on the line "&& /[Doorbell]/ &&"_
 
 * Making the script /opt/sipdoorbell/monitor.sh executable
