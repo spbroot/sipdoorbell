@@ -176,6 +176,15 @@ Intercom control is carried out via DTMF commands
   
   In this configuration, the SIP call hangup is performed by sending the DTMF code "#". Replace "sndcode %23" with the required value
   
+* Download the necessary files to generate a video stream
+  
+  _Necessary only if there is no RTSP stream from the intercom_
+
+  ```
+  cd /opt
+  sudo git clone https://github.com/spbroot/sipdoorbell.git
+  ```
+  
 * Create a script /opt/sipdoorbell/monitor.sh to start baresip at system startup and further check the incoming call to baresip and notify ffmpeg about it
 
   ```
@@ -198,14 +207,47 @@ Intercom control is carried out via DTMF commands
     sleep 1
   done
   ```
-  
-  _The device name "Doorbell" in the Camera FFmpeg Plugin must match the name on the line "http://localhost:8080/doorbell?Doorbell" (after the "?")_
-
 
 * Making the script /opt/sipdoorbell/monitor.sh executable
 
   ```
   sudo chmod +x /opt/sipdoorbell/monitor.sh
+  ```
+
+* Create a script /opt/sipdoorbell/control.sh to add the ability to answer and end a call by pressing the TALK button in the Homekit app
+
+  ```
+  sudo mkdir /opt/sipdoorbell
+  sudo nano /opt/sipdoorbell/control.sh
+  ```
+
+  with the following content:
+
+  ```  
+  #!/bin/bash
+  while true;
+  do
+    if wget -qO- http://localhost:8000/?/callstat | grep -q "INCOMING"
+      then
+        tail -100 /var/lib/homebridge/homebridge.log | awk -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` '$0~date && $0~time && /[Doorbell]/ && /[Two-way]/ && /time=/ {system("wget -q http://localhost:8000/?/accept")}'
+    fi
+    if wget -qO- http://localhost:8000/?/callstat | grep -q "ESTABLISHED"
+      then
+        tail -100 /var/lib/homebridge/homebridge.log | awk -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` -v time15=`date -d'now-15 seconds' +%H:%M:%S` '($0~date && ($0~time || $0~time15) && /[Doorbell]/ && /[Two-way]/ && /time=/) {found=1} END {if(!found) system("wget -q http://localhost:8000/?/hangup")}'
+    fi
+    sleep 1
+  done
+  ```
+  
+  _This script should answer the call when you press the TALK button, and end the call 15 seconds after disconnecting TALK or closing the application_
+  
+  _The device name "Doorbell" in the Camera FFmpeg Plugin must match the name on the line "&& /[Doorbell]/ &&"_
+
+
+* Making the script /opt/sipdoorbell/control.sh executable
+
+  ```
+  sudo chmod +x /opt/sipdoorbell/control.sh
   ```
 
 * Create a file /etc/systemd/system/sipdoorbell.service to create a Sipdoorbell service
@@ -223,21 +265,12 @@ Intercom control is carried out via DTMF commands
 
   [Service]
   Type=simple
+  ExecStartPre=/opt/sipdoorbell/control.sh
   ExecStart=/opt/sipdoorbell/monitor.sh
-
+  
   [Install]
   WantedBy=multi-user.target
   ```
-
-* Download the necessary files to generate a video stream
-  
-  _Necessary only if there is no RTSP stream from the intercom_
-
-  ```
-  cd /opt
-  sudo git clone https://github.com/spbroot/sipdoorbell.git
-  ```
-  
 
 * Launch the Sipdoorbell service we created and add to startup
 
