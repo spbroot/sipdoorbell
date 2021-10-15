@@ -193,6 +193,8 @@ Intercom control is carried out via DTMF commands
   ```
   cd /opt
   sudo git clone https://github.com/spbroot/sipdoorbell.git
+  sudo mv /usr/share/baresip/ring.wav /usr/share/baresip/ring.wav.backup
+  sudo ln -s /opt/sipdoorbell/doorbell.wav /usr/share/baresip/ring.wav
   ```
   
 * Create a script /opt/sipdoorbell/monitor.sh to start baresip at system startup and further check the incoming call to baresip and notify ffmpeg about it
@@ -200,8 +202,6 @@ Intercom control is carried out via DTMF commands
   ```
   sudo mkdir /opt/sipdoorbell
   sudo nano /opt/sipdoorbell/monitor.sh
-  sudo mv /usr/share/baresip/ring.wav /usr/share/baresip/ring.wav.backup
-  sudo ln -s /opt/sipdoorbell/doorbell.wav /usr/share/baresip/ring.wav
   ```
 
   with the following content:
