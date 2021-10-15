@@ -200,6 +200,8 @@ Intercom control is carried out via DTMF commands
   ```
   sudo mkdir /opt/sipdoorbell
   sudo nano /opt/sipdoorbell/monitor.sh
+  sudo mv /usr/share/baresip/ring.wav /usr/share/baresip/ring.wav.backup
+  sudo ln -s /opt/sipdoorbell/doorbell.wav /usr/share/baresip/ring.wav
   ```
 
   with the following content:
