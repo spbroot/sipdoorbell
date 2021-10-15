@@ -68,7 +68,7 @@
 
   ausrc_srate             48000
   auplay_srate            48000
-  ausrc_channels          1
+  ausrc_channels          2
   auplay_channels         2
 
   module                  httpd.so
@@ -109,7 +109,8 @@
   _EXPERIMENTAL - WIP_
 
     ```
-    Two-way Audio Target (EXPERIMENTAL - WIP): "-filter:a volume=12dB -f alsa -ac 1 -ar 48000 sipdoorbell_return"
+    Two-way Audio Target (EXPERIMENTAL - WIP): "-filter:a volume=12dB -f alsa -ac 2 -ar 48000 sipdoorbell_return"
+    Two-way FFmpeg Debug Logging: checked
     Audio Stream: "1:a"
     Enable doorbell: checked
     ```
@@ -130,23 +131,20 @@
   "stillImageSource": "-i /opt/sipdoorbell/homekit.jpg",
   "returnAudioTarget": "-filter:a volume=12dB -f alsa -ac 1 -ar 48000 sipdoorbell_return",
   "mapaudio": "1:a",
+  "audio": true,
+  "debugReturn": true
   ```
 
   _При наличии RTSP потока с домофона заменяем "-re -stream_loop -1 -i /opt/sipdoorbell/homekit.avi" на ссылку RTSP потока_
   
   
-* В Homebridge устанавливаем плагин Homebridge Http Switch
+* В Homebridge устанавливаем плагин Homebridge Http Switch (если необходимо)
 
 * Конфигурация плагина Homebridge Http Switch
 
+  Кнопка для отправки HTTP запроса в Baresip для открытия двери
+  
   ```
-          {
-              "accessory": "HTTP-SWITCH",
-              "name": "Answer",
-              "switchType": "stateless",
-              "timeout": 3000,
-              "onUrl": "http://localhost:8000/?/accept"
-          },
           {
               "accessory": "HTTP-SWITCH",
               "name": "Open",
@@ -154,9 +152,21 @@
               "timeout": 3000,
               "multipleUrlExecutionStrategy": "series",
               "onUrl": [
-                  "http://localhost:8000/?/sndcode 000",
+                  "http://localhost:8000/?/sndcode 0",
                   "http://localhost:8000/?/sndcode %04"
               ]
+          }
+  ```
+  
+  Кнопки для ручного ответа и завершения вызова (например для создания Homekit автоматизаций автоматического открытия двери домофоном)
+  
+  ```
+          {
+              "accessory": "HTTP-SWITCH",
+              "name": "Answer",
+              "switchType": "stateless",
+              "timeout": 3000,
+              "onUrl": "http://localhost:8000/?/accept"
           },
           {
               "accessory": "HTTP-SWITCH",
@@ -170,10 +180,21 @@
                   "delay(1000)",
                   "http://localhost:8000/?/hangup"
               ]
-          }
+          }          
   ```
   
   В данной конфигурации открыкие замка осуществляется отправкой DTMF кода "0". Заменяем "sndcode 0" на необходимое значение.
+  
+  В данной конфигурации завершение SIP вызова осуществляется отправкой DTMF кода "#". Заменяем "sndcode %23" на необходимое значение.
+
+* Загрузим необходимые файлы для формирования видеопотока
+
+  ```
+  cd /opt
+  sudo git clone https://github.com/spbroot/sipdoorbell.git
+  sudo mv /usr/share/baresip/ring.wav /usr/share/baresip/ring.wav.backup
+  sudo ln -s /opt/sipdoorbell/doorbell.wav /usr/share/baresip/ring.wav
+  ```
   
 * Создаем скрипт /opt/sipdoorbell/monitor.sh для запуска baresip при старте системы и дальнейшей проверки входящего вызова в baresip и уведомления о нём ffmpeg
 
@@ -186,13 +207,26 @@
 
   ```
   #!/bin/bash
+
   baresip -d -f /home/pi/.baresip
+  count=0
   while true;
   do
-    if wget -qO- http://localhost:8000/?/callstat | grep -q "INCOMING"
-    then
-      wget -q http://localhost:8080/doorbell?Doorbell > /dev/null 2>&1
-      sleep 20
+    if wget -qO- http://localhost:8000/?/callstat | grep -q "INCOMING"; then
+      tail -100 /var/lib/homebridge/homebridge.log | awk -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` '$0~date && $0~time && /[Doorbell]/ && /[Two-way]/ && /time=/ && !/time=00:00:00.00/ {system("wget -q http://localhost:8000/?/accept")}'
+      if [[ "$count" -eq "0" ]]; then
+        wget -q http://localhost:8080/doorbell?Doorbell > /dev/null 2>&1
+        ((count++))
+      elif (( "$count" > "20" )); then
+        count=0
+      else
+        ((count++))
+      fi
+    else
+      count=0
+    fi
+    if wget -qO- http://localhost:8000/?/callstat | grep -q "ESTABLISHED"; then
+      tail -100 /var/lib/homebridge/homebridge.log | awk -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` -v time15=`date -d'now-15 seconds' +%H:%M:%S` '($0~date && ($0~time || $0~time15) && /[Doorbell]/ && /[Two-way]/ && /time=/ && !/time=00:00:00.00/) {found=1} END {if(!found) system("wget -q http://localhost:8000/?/hangup")}'
     fi
     sleep 1
   done
@@ -224,16 +258,6 @@
   [Install]
   WantedBy=multi-user.target
   ```
-
-* Загрузим необходимые файлы для формирования видеопотока
-  
-  _Необходимо только если отсутствует RTSP поток с домофона_
-
-  ```
-  cd /opt
-  sudo git clone https://github.com/spbroot/sipdoorbell.git
-  ```
-  
 
 * Запускаем созданный нами сервис Sipdoorbell и добавляем в автозагрузку
 
