@@ -139,7 +139,7 @@ Intercom control is carried out via DTMF commands
   
 * Install the Homebridge Http Switch plugin
 
-* Homebridge Http Switch Plugin Configuration
+* Homebridge Http Switch Plugin Configuration (if nessesary)
 
   Command for open the door via send HTTP request to Baresip
   
