@@ -206,8 +206,7 @@
   со следующим содержимым:
 
   ```
-   #!/bin/bash
-
+  #!/bin/bash
 
   homebridge_log_path='/var/lib/homebridge/homebridge.log'
   baresip_path='/home/pi/.baresip'
