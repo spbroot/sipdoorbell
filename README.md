@@ -244,6 +244,7 @@ Intercom control is carried out via DTMF commands
   ```
 
   _The device name "Doorbell" in the Camera FFmpeg Plugin must match with variable "doorbell_device_name"_
+  
   _"homebridge_log_path" path to homebridge log file_
 
   _This script should answer the call when you press the TALK button, and end the call 5 seconds after disconnecting TALK or closing the application_
