@@ -243,11 +243,10 @@ Intercom control is carried out via DTMF commands
   done
   ```
 
-  _The device name "Doorbell" in the Camera FFmpeg Plugin must match the name on the line "http://localhost:8080/doorbell?Doorbell" (after the "?")_
-  
-  _The device name "Doorbell" in the Camera FFmpeg Plugin must match the name on the line "&& /[Doorbell]/ &&"_
+  _The device name "Doorbell" in the Camera FFmpeg Plugin must match with variable "doorbell_device_name"_
+  _"homebridge_log_path" path to homebridge log file_
 
-  _This script should answer the call when you press the TALK button, and end the call 15 seconds after disconnecting TALK or closing the application_
+  _This script should answer the call when you press the TALK button, and end the call 5 seconds after disconnecting TALK or closing the application_
 
 * Making the script /opt/sipdoorbell/monitor.sh executable
 
