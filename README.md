@@ -187,8 +187,6 @@ Intercom control is carried out via DTMF commands
   In this configuration, the SIP call hangup is performed by sending the DTMF code "#". Replace "sndcode %23" with the required value
   
 * Download the necessary files to generate a video stream
-  
-  _Necessary only if there is no RTSP stream from the intercom_
 
   ```
   cd /opt
