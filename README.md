@@ -207,27 +207,37 @@ Intercom control is carried out via DTMF commands
   with the following content:
 
   ```
-  #!/bin/bash
+   #!/bin/bash
+
+  homebridge_log_path='/var/lib/homebridge/homebridge.log'
+  doorbell_device_name='Doorbell'
+  doorbell_ring_repeat=20
 
   baresip -d -f /home/pi/.baresip
+
   count=0
   while true;
   do
     if wget -qO- http://localhost:8000/?/callstat | grep -q "INCOMING"; then
-      tail -100 /var/lib/homebridge/homebridge.log | awk -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` '$0~date && $0~time && /[Doorbell]/ && /[Two-way]/ && /time=/ && !/time=00:00:00.00/ {system("wget -q http://localhost:8000/?/accept")}'
       if [[ "$count" -eq "0" ]]; then
-        wget -q http://localhost:8080/doorbell?Doorbell > /dev/null 2>&1
+        wget -q http://localhost:8080/doorbell?$doorbell_device_name > /dev/null 2>&1
         ((count++))
-      elif (( "$count" > "20" )); then
+      fi
+      tail -100 $homebridge_log_path | awk -v device_name='['+$doorbell_device_name+']' -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` '$0~date && $0~time && $0~device_name && /[Two-way]/ && /time=/ && !/time=00:00:00.00/ {system("wget -q http://localhost:8000/?/accept"); exit 1}'
+      if [ $? -eq 1 ]; then
+        sleep 1
+        while wget -qO- http://localhost:8000/?/callstat | grep -q "ESTABLISHED";
+        do
+          tail -100 $homebridge_log_path | awk -v device_name='['+$doorbell_device_name+']' -v date=`date -d'now' +%d/%m/%Y` -v time1=`date -d'now-1 seconds' +%H:%M:%S` -v time2=`date -d'now-1 seconds' +%H:%M:%S` -v time3=`date -d'now-1 seconds' +%H:%M:%S` -v time4=`date -d'now-4 seconds' +%H:%M:%S` -v time5=`date -d'now-5 seconds' +%H:%M:%S` '($0~date && ($0~time1 || $0~time2 || $0~time3 || $0~time4 || $0~time5) && $0~device_name && /[Two-way]/ && /time=/ && !/time=00:00:00.00/) {found=1} END {if(!found) system("wget -q http://localhost:8000/?/hangup")}'
+          sleep 1
+        done
+      elif (( "$count" > $doorbell_ring_repeat )); then
         count=0
       else
         ((count++))
       fi
     else
       count=0
-    fi
-    if wget -qO- http://localhost:8000/?/callstat | grep -q "ESTABLISHED"; then
-      tail -100 /var/lib/homebridge/homebridge.log | awk -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` -v time15=`date -d'now-15 seconds' +%H:%M:%S` '($0~date && ($0~time || $0~time15) && /[Doorbell]/ && /[Two-way]/ && /time=/ && !/time=00:00:00.00/) {found=1} END {if(!found) system("wget -q http://localhost:8000/?/hangup")}'
     fi
     sleep 1
   done
