@@ -205,7 +205,7 @@ Intercom control is carried out via DTMF commands
   with the following content:
 
   ```
-   #!/bin/bash
+  #!/bin/bash
 
   homebridge_log_path='/var/lib/homebridge/homebridge.log'
   baresip_path='/home/pi/.baresip'
