@@ -140,7 +140,7 @@
   
 * В Homebridge устанавливаем плагин Homebridge Http Switch (если необходимо)
 
-* Конфигурация плагина Homebridge Http Switch
+* Конфигурация плагина Homebridge Http Switch (если необходимо)
 
   Кнопка для отправки HTTP запроса в Baresip для открытия двери
   
