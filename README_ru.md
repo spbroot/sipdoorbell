@@ -208,11 +208,13 @@
   ```
    #!/bin/bash
 
+
   homebridge_log_path='/var/lib/homebridge/homebridge.log'
+  baresip_path='/home/pi/.baresip'
   doorbell_device_name='Doorbell'
   doorbell_ring_repeat=20
-
-  baresip -d -f /home/pi/.baresip
+  
+  baresip -d -f $baresip_path
 
   count=0
   while true;
