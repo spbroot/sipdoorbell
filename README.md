@@ -137,7 +137,7 @@ Intercom control is carried out via DTMF commands
   _If there is an RTSP stream from the intercom, replace "-re -stream_loop -1 -i /opt/sipdoorbell/homekit.avi" and  
   "Still Image Source: "-i /opt/sipdoorbell/homekit.jpg"" with the link of the RTSP stream_
   
-* Install the Homebridge Http Switch plugin
+* Install the Homebridge Http Switch plugin (if nessesary)
 
 * Homebridge Http Switch Plugin Configuration (if nessesary)
 
@@ -186,7 +186,7 @@ Intercom control is carried out via DTMF commands
   
   In this configuration, the SIP call hangup is performed by sending the DTMF code "#". Replace "sndcode %23" with the required value
   
-* Download the necessary files to generate a video stream
+* Download the necessary files
 
   ```
   cd /opt
