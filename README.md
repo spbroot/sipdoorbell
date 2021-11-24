@@ -195,14 +195,12 @@ Intercom control is carried out via DTMF commands
   sudo ln -s /opt/sipdoorbell/doorbell.wav /usr/share/baresip/ring.wav
   ```
   
-* Create a script /opt/sipdoorbell/monitor.sh to start baresip at system startup and further check the incoming call to baresip and notify ffmpeg about it
+* Create a script for check the incoming call to baresip and notify ffmpeg about it
 
   ```
   sudo mkdir /opt/sipdoorbell
   sudo nano /opt/sipdoorbell/monitor.sh
   ```
-
-  with the following content:
 
   ```
   #!/bin/bash
@@ -243,7 +241,7 @@ Intercom control is carried out via DTMF commands
   
   _"homebridge_log_path" path to homebridge log file_
 
-  _This script should answer the call when you press the TALK button, and end the call 5 seconds after disconnecting TALK or closing the application_
+  _This script should answer the call when you enable TALK button, and end the call 5 seconds after disable TALK button or closing the application_
 
 * Making the script /opt/sipdoorbell/monitor.sh executable
 
