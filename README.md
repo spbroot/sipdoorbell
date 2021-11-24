@@ -107,7 +107,7 @@ Intercom control is carried out via DTMF commands
   _EXPERIMENTAL - WIP_
 
     ```
-    Two-way Audio Target (EXPERIMENTAL - WIP): "-filter:a volume=12dB -f alsa -ac 2 -ar 48000 sipdoorbell_return"
+    Two-way Audio Target (EXPERIMENTAL - WIP): "-f alsa -ac 2 -ar 48000 sipdoorbell_return"
     Two-way FFmpeg Debug Logging: checked
     Audio Stream: "1:a"
     Enable doorbell: checked
@@ -128,7 +128,7 @@ Intercom control is carried out via DTMF commands
   ```
   "source": "-re -stream_loop -1 -i /opt/sipdoorbell/homekit.avi -f alsa -ac 2 -ar 48000 -i sipdoorbell_main",
   "stillImageSource": "-i /opt/sipdoorbell/homekit.jpg",
-  "returnAudioTarget": "-filter:a volume=12dB -f alsa -ac 2 -ar 48000 sipdoorbell_return",
+  "returnAudioTarget": "-f alsa -ac 2 -ar 48000 sipdoorbell_return",
   "mapaudio": "1:a",
   "audio": true,
   "debugReturn": true
