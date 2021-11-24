@@ -251,13 +251,11 @@ Intercom control is carried out via DTMF commands
   sudo chmod +x /opt/sipdoorbell/monitor.sh
   ```
 
-* Create a file /etc/systemd/system/baresip.service to create a baresip service
+* Create baresip service
 
   ```
   sudo nano /etc/systemd/system/baresip.service
   ```
-
-  with the following content:
 
   ```
   [Unit]
@@ -277,7 +275,7 @@ Intercom control is carried out via DTMF commands
   WantedBy=multi-user.target
   ```
 
-* Launch the baresip service we created and add to startup
+* Launch the baresip service and add to startup
 
   ```
   sudo systemctl daemon-reload
@@ -285,13 +283,11 @@ Intercom control is carried out via DTMF commands
   sudo systemctl enable baresip.service
   ```
 
-* Create a file /etc/systemd/system/sipdoorbell.service to create a Sipdoorbell service
+* Create Sipdoorbell service
 
   ```
   sudo nano /etc/systemd/system/sipdoorbell.service
   ```
-
-  with the following content:
 
   ```
   [Unit]
@@ -311,7 +307,7 @@ Intercom control is carried out via DTMF commands
   WantedBy=multi-user.target
   ```
 
-* Launch the sipdoorbell service we created and add to startup
+* Launch the sipdoorbell service and add to startup
 
   ```
   sudo systemctl daemon-reload
