@@ -89,7 +89,7 @@
   * При использовании SIP регистрации
 
     ```
-    <sip:extention_number@sip_server_ip>;auth_pass=account_password;regint=0;
+    <sip:extention_number@sip_server_ip>;auth_pass=account_password;
     ```
 
 * В Homebridge устанавливаем плагин Homebridge Camera FFmpeg
