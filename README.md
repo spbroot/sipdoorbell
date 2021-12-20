@@ -174,8 +174,8 @@ Intercom control is carried out via DTMF commands
               "timeout": 3000,
               "multipleUrlExecutionStrategy": "series",
               "onUrl": [
-                  "http://localhost:8000/?/sndcode %23",
                   "http://localhost:8000/?/sndcode %04",
+                  "http://localhost:8000/?/sndcode %23",
                   "delay(1000)",
                   "http://localhost:8000/?/hangup"
               ]
