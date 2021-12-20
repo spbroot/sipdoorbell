@@ -249,6 +249,40 @@
   sudo chmod +x /opt/sipdoorbell/monitor.sh
   ```
 
+* Создаем файл /etc/systemd/system/baresip.service для создания сервиса Baresip
+
+  ```
+  sudo nano /etc/systemd/system/baresip.service
+  ```
+
+  ```
+  [Unit]
+  Description=baresip
+  After=network.target
+
+  [Service]
+  User=pi
+  Group=pi
+  Type=simple
+  KillMode=process
+  ExecStart=baresip -v -d -f '/home/pi/.baresip'
+  Restart=on-failure
+  RestartSec=3
+
+  [Install]
+  WantedBy=multi-user.target
+  ```
+  
+  _Измените имя пользователя, гурппу, путь если необходимо_
+
+* Запускаем созданный нами сервис Baresip и добавляем в автозагрузку
+
+  ```
+  sudo systemctl daemon-reload
+  sudo systemctl start baresip.service
+  sudo systemctl enable baresip.service
+  ```
+
 * Создаем файл /etc/systemd/system/sipdoorbell.service для создания сервиса Sipdoorbell
 
   ```
@@ -263,12 +297,19 @@
   After=network.target
 
   [Service]
+  User=pi
+  Group=pi
   Type=simple
   ExecStart=/opt/sipdoorbell/monitor.sh
+  KillMode=process
+  Restart=on-failure
+  RestartSec=3
 
   [Install]
   WantedBy=multi-user.target
   ```
+  
+  _Измените имя пользователя, гурппу, путь если необходимо_
 
 * Запускаем созданный нами сервис Sipdoorbell и добавляем в автозагрузку
 
