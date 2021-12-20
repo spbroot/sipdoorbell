@@ -87,7 +87,7 @@ Intercom control is carried out via DTMF commands
   * When using SIP registration
 
     ```
-    <sip:extention_number@sip_server_ip>;auth_pass=account_password;regint=0;
+    <sip:extention_number@sip_server_ip>;auth_pass=account_password;
     ```
 
 * Install the Homebridge Camera FFmpeg plugin
