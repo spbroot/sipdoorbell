@@ -1,4 +1,4 @@
-# Adding a SIP intercom to Homekit with two-way audio
+# Adding a SIP doorbell to Homekit with two-way audio
 
 This example shows how to add SIP audio intercom to Homekit
 
