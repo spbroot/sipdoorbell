@@ -16,7 +16,7 @@ Intercom control is carried out via DTMF commands
 
 * Making changes to the ALSA configuration
 
-  Create or edit the /etc/asound.conf file
+  Create or edit the ```/etc/asound.conf``` file
 
   ```
   # output device
@@ -36,15 +36,39 @@ Intercom control is carried out via DTMF commands
   # plug device
   pcm.sipdoorbell_return {
     type plug
-    slave.pcm "loop_out"
+    slave.pcm 'loop_out'
+    hint {
+      show on
+      description 'sipdoorbell return channel'
+    }
   }
 
   # plug device
   pcm.sipdoorbell_main {
     type plug
-    slave.pcm "loop_in"
+    slave.pcm loop_in
+    hint {
+      show on
+      description 'sipdoorbell main channel'
+    }
   }
   ```
+
+    _!!! if you get homebridge error when open doorbell device on iphone/ipad/AppleTV:_
+
+    ```
+    [error] cannot open audio device sipdoorbell_main (No such file or directory)
+    [error] sipdoorbell_main: Input/output error
+    ```
+
+    _or_
+
+    ```
+    [error] cannot open audio device sipdoorbell_return (No such file or directory)
+    [error] sipdoorbell_return: Input/output error
+    ```
+
+    _put this code at the end ```/usr/share/alsa/alsa.conf``` instead ```/etc/asound.conf```_
 
 * Installing baresip
 
@@ -53,7 +77,7 @@ Intercom control is carried out via DTMF commands
   ```
 
 * Run baresip to create a configuration file, after launch press 'q' to exit
-* Making changes to the baresip configuration file: file /home/pi/.baresip/config
+* Making changes to the baresip configuration file: file ```/home/pi/.baresip/config```
 
   Remove the comment from the following lines and make changes
 
@@ -74,7 +98,7 @@ Intercom control is carried out via DTMF commands
   http_listen             0.0.0.0:8000
   ```
 
-* Add a SIP account to the file /home/pi/.baresip/accounts
+* Add a SIP account to the file ```/home/pi/.baresip/accounts```
 
   * When using P2P SIP call
   
@@ -208,6 +232,7 @@ Intercom control is carried out via DTMF commands
   homebridge_log_path='/var/lib/homebridge/homebridge.log'
   doorbell_device_name='Doorbell'
   doorbell_ring_repeat=20
+  date_format='%d/%m/%Y'
 
   count=0
   while true;
@@ -217,12 +242,12 @@ Intercom control is carried out via DTMF commands
         wget -q http://localhost:8080/doorbell?$doorbell_device_name > /dev/null 2>&1
         ((count++))
       fi
-      tail -100 $homebridge_log_path | awk -v device_name=$doorbell_device_name -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` '$0~date && $0~time && $0~device_name && /Two-way/ && /time=/ && !/time=00:00:00.00/ {system("wget -q http://localhost:8000/?/accept > /dev/null 2>&1"); exit 1}'
+      tail -100 $homebridge_log_path | awk -v device_name=$doorbell_device_name -v date=`date -d'now' +$date_format` -v time=`date -d'now-1 seconds' +%H:%M:%S` '$0~date && $0~time && $0~device_name && /Two-way/ && /time=/ && !/time=00:00:00.00/ {system("wget -q http://localhost:8000/?/accept > /dev/null 2>&1"); exit 1}'
       if [ $? -eq 1 ]; then
         sleep 1
         while wget -qO- http://localhost:8000/?/callstat | grep -q "ESTABLISHED";
         do
-          tail -100 $homebridge_log_path | awk -v device_name=$doorbell_device_name -v date=`date -d'now' +%d/%m/%Y` -v time1=`date -d'now-1 seconds' +%H:%M:%S` -v time2=`date -d'now-1 seconds' +%H:%M:%S` -v time3=`date -d'now-1 seconds' +%H:%M:%S` -v time4=`date -d'now-4 seconds' +%H:%M:%S` -v time5=`date -d'now-5 seconds' +%H:%M:%S` '($0~date && ($0~time1 || $0~time2 || $0~time3 || $0~time4 || $0~time5) && $0~device_name && /Two-way/ && /time=/ && !/time=00:00:00.00/) {found=1} END {if(!found) system("wget -q http://localhost:8000/?/hangup > /dev/null 2>&1")}'
+          tail -100 $homebridge_log_path | awk -v device_name=$doorbell_device_name -v date=`date -d'now' +$date_format` -v time1=`date -d'now-1 seconds' +%H:%M:%S` -v time2=`date -d'now-1 seconds' +%H:%M:%S` -v time3=`date -d'now-1 seconds' +%H:%M:%S` -v time4=`date -d'now-4 seconds' +%H:%M:%S` -v time5=`date -d'now-5 seconds' +%H:%M:%S` '($0~date && ($0~time1 || $0~time2 || $0~time3 || $0~time4 || $0~time5) && $0~device_name && /Two-way/ && /time=/ && !/time=00:00:00.00/) {found=1} END {if(!found) system("wget -q http://localhost:8000/?/hangup > /dev/null 2>&1")}'
           sleep 1
         done
       elif (( "$count" > $doorbell_ring_repeat )); then
@@ -240,10 +265,12 @@ Intercom control is carried out via DTMF commands
   _The device name "Doorbell" in the Camera FFmpeg Plugin must match with variable "doorbell_device_name"_
   
   _"homebridge_log_path" path to homebridge log file_
+  
+  _"date_format" date format of homebridge log file_ 
 
   _This script should answer the call when you enable TALK button, and end the call 5 seconds after disable TALK button or closing the application_
 
-* Making the script /opt/sipdoorbell/monitor.sh executable
+* Making the script ```/opt/sipdoorbell/monitor.sh``` executable
 
   ```
   sudo chmod +x /opt/sipdoorbell/monitor.sh
