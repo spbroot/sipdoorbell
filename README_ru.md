@@ -38,15 +38,40 @@
   # plug device
   pcm.sipdoorbell_return {
     type plug
-    slave.pcm "loop_out"
+    slave.pcm 'loop_out'
+    hint {
+      show on
+      description 'sipdoorbell return channel'
+    }
   }
 
   # plug device
   pcm.sipdoorbell_main {
     type plug
-    slave.pcm "loop_in"
+    slave.pcm loop_in
+    hint {
+      show on
+      description 'sipdoorbell main channel'
+    }
   }
   ```
+
+    _!!! Если при открытии домофона на iphone/ipad/AppleTV в homebridge останавливается FFmpeg вот с такой или похожей ошибкой:_
+
+    ```
+    [error] cannot open audio device sipdoorbell_main (No such file or directory)
+    [error] sipdoorbell_main: Input/output error
+    ```
+
+    _или_
+
+    ```
+    [error] cannot open audio device sipdoorbell_return (No such file or directory)
+    [error] sipdoorbell_return: Input/output error
+    ```
+
+    _размещаем это в ```/usr/share/alsa/alsa.conf``` вместо ```/etc/asound.conf```_
+    _Не очень правильно, но на некоторых системах по непонятной причине FFmpeg не видит устройств описанных в ```/etc/asound.conf``` (при таком поведении выдача ```ffmpeg -sources alsa``` не содержит описанных в ```/etc/asound.conf``` или ```~/.asoundrc``` устройств)_
 
 * Устанавливаем baresip
 
@@ -196,7 +221,7 @@
   sudo ln -s /opt/sipdoorbell/doorbell.wav /usr/share/baresip/ring.wav
   ```
   
-* Создаем скрипт /opt/sipdoorbell/monitor.sh для запуска baresip при старте системы и дальнейшей проверки входящего вызова в baresip и уведомления о нём ffmpeg
+* Создаем скрипт /opt/sipdoorbell/monitor.sh для дальнейшей проверки входящего вызова в baresip и уведомления о нём ffmpeg
 
   ```
   sudo mkdir /opt/sipdoorbell
@@ -270,7 +295,7 @@
   WantedBy=multi-user.target
   ```
   
-  _Измените имя пользователя, гурппу, путь если необходимо_
+  _Измените имя пользователя, группу, путь если необходимо_
 
 * Запускаем созданный нами сервис Baresip и добавляем в автозагрузку
 
@@ -306,7 +331,7 @@
   WantedBy=multi-user.target
   ```
   
-  _Измените имя пользователя, гурппу, путь если необходимо_
+  _Измените имя пользователя, группу, путь если необходимо_
 
 * Запускаем созданный нами сервис Sipdoorbell и добавляем в автозагрузку
 
