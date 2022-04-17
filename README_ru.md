@@ -70,7 +70,7 @@
     [error] sipdoorbell_return: Input/output error
     ```
 
-    _размещаем это в ```/usr/share/alsa/alsa.conf``` вместо ```/etc/asound.conf```_
+    _размещаем это в конце ```/usr/share/alsa/alsa.conf``` вместо ```/etc/asound.conf```_
     
     _Не очень правильно, но на некоторых системах, по непонятной мне причине, FFmpeg не видит устройств описанных в ```/etc/asound.conf``` (при таком поведении выдача ```ffmpeg -sources alsa``` не содержит описанных в ```/etc/asound.conf``` или ```~/.asoundrc``` устройств)_
 
