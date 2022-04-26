@@ -231,12 +231,13 @@
 
   со следующим содержимым:
 
-  ```
+    ```
   #!/bin/bash
 
   homebridge_log_path='/var/lib/homebridge/homebridge.log'
   doorbell_device_name='Doorbell'
   doorbell_ring_repeat=20
+  date_format='%d/%m/%Y'
 
   count=0
   while true;
@@ -246,12 +247,12 @@
         wget -q http://localhost:8080/doorbell?$doorbell_device_name > /dev/null 2>&1
         ((count++))
       fi
-      tail -100 $homebridge_log_path | awk -v device_name=$doorbell_device_name -v date=`date -d'now' +%d/%m/%Y` -v time=`date -d'now-1 seconds' +%H:%M:%S` '$0~date && $0~time && $0~device_name && /Two-way/ && /time=/ && !/time=00:00:00.00/ {system("wget -q http://localhost:8000/?/accept > /dev/null 2>&1"); exit 1}'
+      tail -100 $homebridge_log_path | awk -v device_name=$doorbell_device_name -v date=`date -d'now' +$date_format` -v time=`date -d'now-1 seconds' +%H:%M:%S` '$0~date && $0~time && $0~device_name && /Two-way/ && /time=/ && !/time=00:00:00.00/ {system("wget -q http://localhost:8000/?/accept > /dev/null 2>&1"); exit 1}'
       if [ $? -eq 1 ]; then
         sleep 1
         while wget -qO- http://localhost:8000/?/callstat | grep -q "ESTABLISHED";
         do
-          tail -100 $homebridge_log_path | awk -v device_name=$doorbell_device_name -v date=`date -d'now' +%d/%m/%Y` -v time1=`date -d'now-1 seconds' +%H:%M:%S` -v time2=`date -d'now-1 seconds' +%H:%M:%S` -v time3=`date -d'now-1 seconds' +%H:%M:%S` -v time4=`date -d'now-4 seconds' +%H:%M:%S` -v time5=`date -d'now-5 seconds' +%H:%M:%S` '($0~date && ($0~time1 || $0~time2 || $0~time3 || $0~time4 || $0~time5) && $0~device_name && /Two-way/ && /time=/ && !/time=00:00:00.00/) {found=1} END {if(!found) system("wget -q http://localhost:8000/?/hangup > /dev/null 2>&1")}'
+          tail -100 $homebridge_log_path | awk -v device_name=$doorbell_device_name -v date=`date -d'now' +$date_format` -v time1=`date -d'now-1 seconds' +%H:%M:%S` -v time2=`date -d'now-1 seconds' +%H:%M:%S` -v time3=`date -d'now-1 seconds' +%H:%M:%S` -v time4=`date -d'now-4 seconds' +%H:%M:%S` -v time5=`date -d'now-5 seconds' +%H:%M:%S` '($0~date && ($0~time1 || $0~time2 || $0~time3 || $0~time4 || $0~time5) && $0~device_name && /Two-way/ && /time=/ && !/time=00:00:00.00/) {found=1} END {if(!found) system("wget -q http://localhost:8000/?/hangup > /dev/null 2>&1")}'
           sleep 1
         done
       elif (( "$count" > $doorbell_ring_repeat )); then
@@ -265,6 +266,15 @@
     sleep 1
   done
   ```
+
+  _Устройство "Doorbell" в Camera FFmpeg Plugin должно совпадать с "doorbell_device_name"_
+  
+  _"homebridge_log_path" путь к логам homebridge_
+  
+  _"date_format" формат даты в логах homebridge_ 
+
+  _Скрипт отвечает на SIP вызов при нажатии кнопки "Говорить", и разрывает SIP соединение через 5 секунд после отключения кнопки "Говорить" или закрытии приложения._
+
 
 * Делаем скрипт /opt/sipdoorbell/monitor.sh исполняемым
 
