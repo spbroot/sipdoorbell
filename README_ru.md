@@ -267,13 +267,15 @@
   done
   ```
 
-  _Устройство "Doorbell" в Camera FFmpeg Plugin должно совпадать с "doorbell_device_name"_
+
+  _Имя устройства "Doorbell" в Camera FFmpeg Plugin должно совпадать с "doorbell_device_name"_
   
   _"homebridge_log_path" путь к логам homebridge_
   
   _"date_format" формат даты в логах homebridge_ 
 
   _Скрипт отвечает на SIP вызов при нажатии кнопки "Говорить", и разрывает SIP соединение через 5 секунд после отключения кнопки "Говорить" или закрытии приложения._
+
 
 
 * Делаем скрипт /opt/sipdoorbell/monitor.sh исполняемым
