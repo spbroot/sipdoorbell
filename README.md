@@ -6,10 +6,13 @@ Used Rasberry Pi 4 with Homebridge image installed
 
 Intercom control is carried out via DTMF commands
 
-Make changes to the system settings:
-- 24-hour time format
-- date format DD/MM/YYYY
+* Make changes to the system settings
 
+  ```
+  24-hour time format
+  date format DD/MM/YYYY
+  ```
+  
 * Adding the ALSA Loopback Sound Device
 
   ```
