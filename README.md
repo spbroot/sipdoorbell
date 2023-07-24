@@ -182,8 +182,8 @@ Intercom control is carried out via DTMF commands
               "timeout": 3000,
               "multipleUrlExecutionStrategy": "series",
               "onUrl": [
-                  "http://localhost:8000/?/sndcode 0",
-                  "http://localhost:8000/?/sndcode %04"
+                  "http://127.0.0.1:8000/?/sndcode 0",
+                  "http://127.0.0.1:8000/?/sndcode %04"
               ]
           }
   ```
@@ -196,7 +196,7 @@ Intercom control is carried out via DTMF commands
               "name": "Answer",
               "switchType": "stateless",
               "timeout": 3000,
-              "onUrl": "http://localhost:8000/?/accept"
+              "onUrl": "http://127.0.0.1:8000/?/accept"
           },
           {
               "accessory": "HTTP-SWITCH",
@@ -205,10 +205,10 @@ Intercom control is carried out via DTMF commands
               "timeout": 3000,
               "multipleUrlExecutionStrategy": "series",
               "onUrl": [
-                  "http://localhost:8000/?/sndcode %23",
-                  "http://localhost:8000/?/sndcode %04",
+                  "http://127.0.0.1:8000/?/sndcode %23",
+                  "http://127.0.0.1:8000/?/sndcode %04",
                   "delay(1000)",
-                  "http://localhost:8000/?/hangup"
+                  "http://127.0.0.1:8000/?/hangup"
               ]
           }          
   ```
@@ -244,17 +244,17 @@ Intercom control is carried out via DTMF commands
   count=0
   while true;
   do
-    if wget -qO- http://localhost:8000/?/callstat | grep -q "INCOMING"; then
+    if wget -qO- http://127.0.0.1:8000/?/callstat | grep -q "INCOMING"; then
       if [[ "$count" -eq "0" ]]; then
-        wget -q http://localhost:8080/doorbell?$doorbell_device_name > /dev/null 2>&1
+        wget -q http://127.0.0.1:8080/doorbell?$doorbell_device_name > /dev/null 2>&1
         ((count++))
       fi
-      tail -100 $homebridge_log_path | awk -v device_name=$doorbell_device_name -v date=`date -d'now' +$date_format` -v time=`date -d'now-1 seconds' +%H:%M:%S` '$0~date && $0~time && $0~device_name && /Two-way/ && /time=/ && !/time=00:00:00.00/ {system("wget -q http://localhost:8000/?/accept > /dev/null 2>&1"); exit 1}'
+      tail -100 $homebridge_log_path | awk -v device_name=$doorbell_device_name -v date=`date -d'now' +$date_format` -v time=`date -d'now-1 seconds' +%H:%M:%S` '$0~date && $0~time && $0~device_name && /Two-way/ && /time=/ && !/time=00:00:00.00/ {system("wget -q http://127.0.0.1:8000/?/accept > /dev/null 2>&1"); exit 1}'
       if [ $? -eq 1 ]; then
         sleep 1
-        while wget -qO- http://localhost:8000/?/callstat | grep -q "ESTABLISHED";
+        while wget -qO- http://127.0.0.1:8000/?/callstat | grep -q "ESTABLISHED";
         do
-          tail -100 $homebridge_log_path | awk -v device_name=$doorbell_device_name -v date=`date -d'now' +$date_format` -v time1=`date -d'now-1 seconds' +%H:%M:%S` -v time2=`date -d'now-1 seconds' +%H:%M:%S` -v time3=`date -d'now-1 seconds' +%H:%M:%S` -v time4=`date -d'now-4 seconds' +%H:%M:%S` -v time5=`date -d'now-5 seconds' +%H:%M:%S` '($0~date && ($0~time1 || $0~time2 || $0~time3 || $0~time4 || $0~time5) && $0~device_name && /Two-way/ && /time=/ && !/time=00:00:00.00/) {found=1} END {if(!found) system("wget -q http://localhost:8000/?/hangup > /dev/null 2>&1")}'
+          tail -100 $homebridge_log_path | awk -v device_name=$doorbell_device_name -v date=`date -d'now' +$date_format` -v time1=`date -d'now-1 seconds' +%H:%M:%S` -v time2=`date -d'now-1 seconds' +%H:%M:%S` -v time3=`date -d'now-1 seconds' +%H:%M:%S` -v time4=`date -d'now-4 seconds' +%H:%M:%S` -v time5=`date -d'now-5 seconds' +%H:%M:%S` '($0~date && ($0~time1 || $0~time2 || $0~time3 || $0~time4 || $0~time5) && $0~device_name && /Two-way/ && /time=/ && !/time=00:00:00.00/) {found=1} END {if(!found) system("wget -q http://127.0.0.1:8000/?/hangup > /dev/null 2>&1")}'
           sleep 1
         done
       elif (( "$count" > $doorbell_ring_repeat )); then
